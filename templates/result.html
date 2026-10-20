@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результат</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .score { font-size: 24px; font-weight: bold; color: #333; margin-bottom: 20px; }
+        .history-item { margin-bottom: 15px; padding: 10px; border-radius: 5px; }
+        .correct { background-color: #d4edda; border-left: 5px solid #28a745; }
+        .incorrect { background-color: #f8d7da; border-left: 5px solid #dc3545; }
+        .question-text { font-style: italic; white-space: pre-wrap; margin-bottom: 5px; }
+        .user-answer { font-weight: bold; }
+        .correct-answer { font-weight: bold; color: #155724; }
+        .wrong-answer { font-weight: bold; color: #721c24; }
+        .btn { display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Игра окончена!</h1>
+        <div class="score">Ваш счет: {{ score }} из 10</div>
+        <p>Правильных ответов: {{ correct }}</p>
+        <p>Неправильных ответов: {{ incorrect }}</p>
+
+        <h3>Разбор ответов:</h3>
+        {% if history %}
+            {% for item in history %}
+                <div class="history-item {% if item.is_correct %}correct{% else %}incorrect{% endif %}">
+                    <div class="question-text">{{ item.question }}</div>
+                    {% if item.is_correct %}
+                        <div class="correct-answer">✅ Ваш ответ: {{ item.user_answer }} (Верно)</div>
+                    {% else %}
+                        <div class="wrong-answer">❌ Ваш ответ: {{ item.user_answer }}</div>
+                        <div class="correct-answer">✅ Правильный ответ: {{ item.correct_answer }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Нет данных об ответах.</p>
+        {% endif %}
+        
+        <a href="/" class="btn">Играть снова</a>
+    </div>
+</body>
+</html>
