@@ -1,0 +1,18 @@
+<h2>Настройка игры</h2>
+<form method="POST">
+    <label>Альбом:</label>
+    <select name="album_id">
+        <option value="random">Случайные треки</option>
+        {% for album in albums %}
+            <option value="{{ album.id }}">{{ album.title }}</option>
+        {% endfor %}
+    </select><br><br>
+    
+    <label>Режим:</label>
+    <select name="mode">
+        <option value="guess_track">Угадай трек</option>
+        <option value="missing_word">Пропущенное слово</option>
+    </select><br><br>
+    
+    <button type="submit">Поехали!</button>
+</form>
