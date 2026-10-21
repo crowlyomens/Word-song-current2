@@ -40,6 +40,8 @@ class Verse(db.Model):
     text = db.Column(db.Text, nullable=False)
     # слово, которое прячем в режиме «Пропущенное слово»
     missing_word = db.Column(db.String(100), nullable=False)
+    # неверные варианты для режима «Пропущенное слово»: слово1;слово2;слово3
+    distractors = db.Column(db.String(300))
     track_id = db.Column(db.Integer, db.ForeignKey("tracks.id"), nullable=False)
 
     track = db.relationship("Track", back_populates="verses")
