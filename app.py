@@ -1,10 +1,39 @@
 import random
+import re
 from flask import Flask, render_template, request, session, redirect, url_for
 from init_db import create_app
 from models import db, Album, Track, Verse
 
 app = create_app()
 app.secret_key = 'word-song-super-secret-key'
+
+def hide_word(text, word):
+    # прячем слово целиком (а не кусок другого слова), только первое вхождение
+    pattern = r"(?<!\w)" + re.escape(word) + r"(?!\w)"
+    hidden, count = re.subn(pattern, "______", text, count=1)
+    if count == 0:
+        # запасной вариант: слово нашлось только внутри другого слова
+        hidden = text.replace(word, "______", 1)
+    return hidden
+
+
+def missing_word_options(verse, all_words):
+    correct = verse.missing_word
+    wrong = []
+    if verse.distractors:
+        wrong = [w.strip() for w in verse.distractors.split(";") if w.strip()]
+        wrong = [w for w in wrong if w != correct]
+        if len(wrong) > 3:
+            wrong = random.sample(wrong, 3)
+    # если подготовленных вариантов не хватает, добираем случайными, как раньше
+    if len(wrong) < 3:
+        others = [w for w in all_words if w != correct and w not in wrong]
+        wrong.extend(random.sample(others, min(3 - len(wrong), len(others))))
+    while len(wrong) < 3:
+        wrong.append("Слово")
+    options = [correct] + wrong
+    random.shuffle(options)
+    return correct, options
 
 def generate_questions(album_id, mode):
     if album_id == 'random':
@@ -32,15 +61,8 @@ def generate_questions(album_id, mode):
             questions.append({'verse_id': verse.id, 'text': verse.text, 'options': options, 'correct': correct, 'mode': 'guess_track'})
             
         elif mode == 'missing_word':
-            correct = verse.missing_word
-            options = [correct]
-            other_words = [w for w in all_words if w != correct]
-            if len(other_words) >= 3:
-                options.extend(random.sample(other_words, 3))
-            else:
-                options.extend(["Слово"] * (4 - len(options)))
-            random.shuffle(options)
-            hidden_text = verse.text.replace(correct, "______", 1)
+            correct, options = missing_word_options(verse, all_words)
+            hidden_text = hide_word(verse.text, correct)
             questions.append({'verse_id': verse.id, 'text': hidden_text, 'options': options, 'correct': correct, 'mode': 'missing_word'})
             
     return questions
