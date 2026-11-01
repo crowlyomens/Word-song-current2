@@ -3,9 +3,13 @@ import re
 from flask import Flask, render_template, request, session, redirect, url_for
 from init_db import create_app
 from models import db, Album, Track, Verse
+from admin_panel import init_admin
 
 app = create_app()
 app.secret_key = 'word-song-super-secret-key'
+app = create_app()
+app.secret_key = 'word-song-super-secret-key'
+init_admin(app)
 
 def hide_word(text, word):
     # прячем слово целиком (а не кусок другого слова), только первое вхождение

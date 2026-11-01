@@ -1,6 +1,7 @@
 import csv
 import os
 import re
+import shutil
 import sys
 
 from init_db import create_app, BASE_DIR
@@ -21,15 +22,25 @@ def read_csv(name, required=True):
 
 def clean_text(text):
     # в тексте куплета кавычки не нужны: убираем их, чистим пробелы и пустые строки
-    text = text.replace('"', "")
+    text = (text or "").replace('"', "")
     lines = [line.strip() for line in text.splitlines()]
     return "\n".join(line for line in lines if line)
 
 
 def word_in_text(word, text):
     # ищем слово целиком, с тем же регистром
+    if not word:
+        return False
     pattern = r"(?<!\w)" + re.escape(word) + r"(?!\w)"
     return re.search(pattern, text) is not None
+
+
+def backup_db():
+    # перед перезаписью сохраняем копию базы: вдруг в ней были правки из админки
+    db_file = os.path.join(BASE_DIR, "wordsong.db")
+    if os.path.exists(db_file):
+        shutil.copy2(db_file, os.path.join(BASE_DIR, "wordsong.backup.db"))
+        print("Старая база сохранена как wordsong.backup.db")
 
 
 def main():
@@ -41,16 +52,16 @@ def main():
     errors = []
 
     album_ids = {int(a["id"]) for a in albums}
-    track_album = {int(t["id"]): int(t["album_id"]) for t in tracks}
+    track_album = {int(t["id"]): (int(t["album_id"]) if (t["album_id"] or "").strip() else None) for t in tracks}
 
     for track_id, album_id in track_album.items():
-        if album_id not in album_ids:
+        # трек может быть без альбома (сингл), но если альбом указан, он должен существовать
+        if album_id is not None and album_id not in album_ids:
             errors.append(f"Трек {track_id}: нет альбома с id={album_id}")
 
-    for album_id in album_ids:
-        count = sum(1 for a in track_album.values() if a == album_id)
-        if count < 4:
-            errors.append(f"Альбом {album_id}: треков {count}, нужно минимум 4")
+    # варианты для «Угадай трек» берутся из всех треков базы, поэтому достаточно 4 треков в сумме
+    if len(tracks) < 4:
+        errors.append("Во всей базе меньше 4 треков: для вопроса «Угадай трек» не хватит вариантов")
 
     clean_verses = []
     missing_words = {}
@@ -93,6 +104,8 @@ def main():
             print(" -", e)
         sys.exit(1)
 
+    backup_db()
+
     app = create_app()
     with app.app_context():
         db.create_all()
@@ -104,7 +117,7 @@ def main():
         db.session.commit()
 
         for a in albums:
-            year = a["year"].strip()
+            year = (a["year"] or "").strip()
             db.session.add(Album(
                 id=int(a["id"]),
                 title=a["title"].strip(),
@@ -113,10 +126,11 @@ def main():
         db.session.commit()
 
         for t in tracks:
+            album_id = (t["album_id"] or "").strip()
             db.session.add(Track(
                 id=int(t["id"]),
                 title=t["title"].strip(),
-                album_id=int(t["album_id"]),
+                album_id=int(album_id) if album_id else None,
             ))
         db.session.commit()
 
