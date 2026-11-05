@@ -7,8 +7,6 @@ from admin_panel import init_admin
 
 app = create_app()
 app.secret_key = 'word-song-super-secret-key'
-app = create_app()
-app.secret_key = 'word-song-super-secret-key'
 init_admin(app)
 
 def hide_word(text, word):
@@ -130,7 +128,10 @@ def game():
 def result():
     if 'score' not in session:
         return redirect(url_for('index'))
-    return render_template('result.html', score=session['score'], correct=session['correct_count'], incorrect=session['incorrect_count'], history=session.get('history', []))
-
+    
+    # Считаем общее количество вопросов, которые были заданы
+    total_questions = len(session.get('questions', []))
+    
+    return render_template('result.html', score=session['score'], correct=session['correct_count'], incorrect=session['incorrect_count'], history=session.get('history', []), total=total_questions)
 if __name__ == '__main__':
     app.run(debug=True)
