@@ -1,3 +1,79 @@
-<h1>Word-Song</h1>
-<p>Проверь знание песен Pyrokinesis!</p>
-<a href="/setup"><button>Начать игру</button></a>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Word-Song</title>
+    <style>
+        /* 1. Подключаем ваш основной готический шрифт */
+        @font-face {
+            font-family: 'CyrillicGoth';
+            src: url("{{ url_for('static', filename='fonts/deutsch-gothic.woff2') }}") format('woff2');
+        }
+
+        /* 2. Общие стили для всей страницы */
+        body {
+            font-family: 'CyrillicGoth', sans-serif; /* Все элементы используют этот шрифт */
+            margin: 20px;
+            background-color: #f4f4f9;
+            font-size: 18px;
+        }
+
+        /* 3. Стили для белой карточки по центру */
+        .container {
+            max-width: 600px;
+            margin: 50px auto; 
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center; /* Центрируем текст внутри */
+        }
+
+        /* 4. Word-Song и Pyrokinesis */
+        h1, .pyrokinesis-text {
+            font-family: 'CyrillicGoth', sans-serif; /* Изменено на основной шрифт */
+            font-weight: bold;
+            font-size: 45px; /* Размер оставлен без изменений */
+            line-height: 1.2;
+        }
+
+        h1 {
+            margin-bottom: 5px; 
+        }
+
+        /* Стили для слова Pyrokinesis */
+        .pyrokinesis-text {
+            display: block; /* Оставляет на новой строке */
+            margin-bottom: 20px; 
+        }
+
+        /* 5. Стили для кнопки */
+        button {
+            font-family: 'CyrillicGoth', sans-serif; 
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Word-Song</h1>
+        
+        <p style="margin-bottom: 10px;">Проверь знание песен</p>
+        
+        <div class="pyrokinesis-text">Pyrokinesis'a</div>
+        
+        <a href="/setup"><button>Начать игру</button></a>
+    </div>
+</body>
+</html>

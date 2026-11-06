@@ -4,36 +4,133 @@
     <meta charset="UTF-8">
     <title>Результат</title>
     <style>
-        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f9; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        /* Подключаем ваш готический шрифт */
+        @font-face {
+            font-family: 'CyrillicGoth';
+            src: url("{{ url_for('static', filename='fonts/deutsch-gothic.woff2') }}") format('woff2');
+        }
+
+        body { 
+            font-family: 'CyrillicGoth', sans-serif; /* Применили шрифт ко всей странице */
+            margin: 20px; 
+            background-color: #f4f4f9; 
+        }
+        
+        .container { 
+            max-width: 800px; 
+            margin: auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+            text-align: center; /* Центрируем заголовок */
+        }
+        
         .score { font-size: 24px; font-weight: bold; color: #333; margin-bottom: 20px; }
-        .history-item { margin-bottom: 15px; padding: 10px; border-radius: 5px; }
+        
+        .history-item { 
+            margin-bottom: 15px; 
+            padding: 10px; 
+            border-radius: 5px; 
+            text-align: left; /* Разбор ответов прижат к левому краю */
+        }
+        
         .correct { background-color: #d4edda; border-left: 5px solid #28a745; }
         .incorrect { background-color: #f8d7da; border-left: 5px solid #dc3545; }
-        .question-text { font-style: italic; white-space: pre-wrap; margin-bottom: 5px; }
+        
+        .question-text { 
+            /* font-style: italic; <-- Убрали курсив для единого стиля */
+            white-space: pre-wrap; 
+            margin-bottom: 5px; 
+        }
+        
         .user-answer { font-weight: bold; }
-        .correct-answer { font-weight: bold; color: #155724; }
-        .wrong-answer { font-weight: bold; color: #721c24; }
-        .btn { display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+        
+        /* ДОБАВЛЕНО: делаем ответы строчными буквами */
+        .correct-answer { 
+            font-weight: bold; 
+            color: #155724; 
+            text-transform: lowercase; 
+        }
+        
+        .wrong-answer { 
+            font-weight: bold; 
+            color: #721c24; 
+            text-transform: lowercase; 
+        }
+        
+        .btn { 
+            display: inline-block; 
+            padding: 10px 20px; 
+            background: #007bff; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin-top: 20px; 
+            font-family: 'CyrillicGoth', sans-serif; /* Шрифт для кнопки */
+        }
+        
+        .score-board { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: #e9ecef; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+        }
+        
+        .player-score { font-size: 20px; font-weight: bold; }
+        .bot-score { font-size: 20px; font-weight: bold; color: #6c757d; }
+        .winner-text { text-align: center; font-size: 22px; font-weight: bold; color: #007bff; margin-bottom: 20px; }
+        
+        /* ДОБАВЛЕНО: делаем ответы бота строчными буквами */
+        .bot-answer { 
+            color: #6c757d; 
+            font-size: 0.9em; 
+            margin-top: 5px; 
+            text-transform: lowercase; 
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Игра окончена!</h1>
-        <div class="score">Ваш счет: {{ score }} из {{ total }}</div>
-        <p>Правильных ответов: {{ correct }}</p>
-        <p>Неправильных ответов: {{ incorrect }}</p>
+        
+        {% if with_bot %}
+            <div class="winner-text">
+                {% if winner == 'user' %}🎉 Вы победили!
+                {% elif winner == 'bot' %}🤖 Бот победил!
+                {% else %}🤝 Ничья!{% endif %}
+            </div>
+
+            <div class="score-board">
+                <div class="player-score">Ваш счет: {{ score }} из {{ total }}</div>
+                <div class="bot-score">Счет бота: {{ bot_score }}</div>
+            </div>
+        {% else %}
+            <div class="score-board">
+                <div class="player-score">Ваш счет: {{ score }} из {{ total }}</div>
+            </div>
+        {% endif %}
 
         <h3>Разбор ответов:</h3>
         {% if history %}
             {% for item in history %}
                 <div class="history-item {% if item.is_correct %}correct{% else %}incorrect{% endif %}">
                     <div class="question-text">{{ item.question }}</div>
+                    
                     {% if item.is_correct %}
                         <div class="correct-answer">✅ Ваш ответ: {{ item.user_answer }} (Верно)</div>
                     {% else %}
                         <div class="wrong-answer">❌ Ваш ответ: {{ item.user_answer }}</div>
                         <div class="correct-answer">✅ Правильный ответ: {{ item.correct_answer }}</div>
+                    {% endif %}
+                    
+                    {% if with_bot and item.bot_answer %}
+                        <div class="bot-answer">
+                            🤖 Бот ответил: {{ item.bot_answer }} {% if item.bot_is_correct %}(Верно){% else %}(Ошибся){% endif %}
+                        </div>
                     {% endif %}
                 </div>
             {% endfor %}

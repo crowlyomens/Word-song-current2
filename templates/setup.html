@@ -1,18 +1,252 @@
-<h2>Настройка игры</h2>
-<form method="POST">
-    <label>Альбом:</label>
-    <select name="album_id">
-        <option value="random">Случайные треки</option>
-        {% for album in albums %}
-            <option value="{{ album.id }}">{{ album.title }}</option>
-        {% endfor %}
-    </select><br><br>
-    
-    <label>Режим:</label>
-    <select name="mode">
-        <option value="guess_track">Угадай трек</option>
-        <option value="missing_word">Пропущенное слово</option>
-    </select><br><br>
-    
-    <button type="submit">Поехали!</button>
-</form>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Настройка игры</title>
+    <style>
+        /* Подключаем ваш готический шрифт */
+        @font-face {
+            font-family: 'CyrillicGoth';
+            src: url("{{ url_for('static', filename='fonts/deutsch-gothic.woff2') }}") format('woff2');
+        }
+
+        /* Стили для всей страницы */
+        body { 
+            font-family: 'CyrillicGoth', sans-serif; 
+            margin: 20px; 
+            background-color: #000000; 
+            color: #ffffff; 
+            font-size: 18px;
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale; 
+            text-rendering: optimizeLegibility; 
+            letter-spacing: 0.5px; 
+        }
+        
+        /* Стили для блока по центру (окно) */
+        .container {
+            max-width: 500px; 
+            margin: 50px auto; 
+            background: #5c0000; 
+            padding: 30px; 
+            border-radius: 8px; 
+            border: 1px solid #bd0000; 
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.6); 
+            text-align: center; 
+        }
+
+        /* Заголовок и подписи */
+        h2, label {
+            color: #ffffff;
+            text-shadow: 0 0 4px #000000, 0 0 8px #000000, -1px -1px 2px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 19px; 
+        }
+
+        /* --- СТИЛИ ДЛЯ СТАНДАРТНЫХ ВЫПАДАЮЩИХ СПИСКОВ (Альбом, Режим) --- */
+        select {
+            padding: 8px 35px 8px 12px; 
+            width: 90%;
+            margin-top: 10px;
+            font-family: 'CyrillicGoth', sans-serif; 
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #bd0000;
+            background-color: #1a0000; 
+            color: #ffffff; 
+            cursor: pointer;
+            -webkit-font-smoothing: antialiased;
+            text-shadow: 0 0 3px #000000, 0 0 6px #000000; 
+            
+            appearance: none; 
+            -webkit-appearance: none; 
+            -moz-appearance: none; 
+
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23FFFFFF' d='M 5,5 C 20,30 45,60 50,95 C 55,60 80,30 95,5 C 75,20 60,35 50,45 C 40,35 25,20 5,5 Z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 11px center; 
+            background-size: 14px; 
+        }
+
+        /* --- СТИЛИ ДЛЯ КАСТОМНОГО СПИСКА (Соперник) --- */
+        .custom-dropdown {
+            position: relative;
+            width: 90%;
+            margin: 10px auto;
+            font-family: 'CyrillicGoth', sans-serif;
+            text-align: left; 
+        }
+
+        .dropdown-selected {
+            background-color: #1a0000;
+            border: 1px solid #bd0000;
+            border-radius: 5px;
+            padding: 8px 12px;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            text-shadow: 0 0 3px #000000, 0 0 6px #000000; 
+        }
+
+        .dropdown-options {
+            display: none; 
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #1a0000;
+            border: 1px solid #bd0000;
+            border-radius: 5px;
+            z-index: 10;
+            margin-top: 2px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+
+        .dropdown-options.show {
+            display: block; 
+        }
+
+        .dropdown-item {
+            display: flex; 
+            align-items: center;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #3a0000;
+            font-size: 16px;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background-color: #5c0000;
+        }
+
+        .stars {
+            width: 60px; 
+            text-align: center; 
+            color: #ffffff;
+            display: inline-block;
+        }
+
+        .text {
+            flex: 1; 
+            margin-left: 5px;
+        }
+
+        /* Стили для стрелки в кастомном списке */
+        .dropdown-arrow-svg {
+            width: 14px;
+            height: 14px;
+            fill: white;
+        }
+
+        /* --- СТИЛИ ДЛЯ КНОПКИ --- */
+        button {
+            background-color: #5c0000; 
+            color: white;
+            border: 1px solid #bd0000; 
+            padding: 12px 30px; 
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 20px;
+            margin-top: 20px;
+            font-family: 'CyrillicGoth', sans-serif; 
+            transition: 0.3s;
+            -webkit-font-smoothing: antialiased;
+            text-shadow: 0 0 4px #000000, 0 0 8px #000000;
+        }
+
+        button:hover {
+            background-color: #b30000; 
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.8); 
+            text-shadow: 0 0 6px #000000, 0 0 12px #000000; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Настройка игры</h2>
+        <form method="POST">
+            <label>Альбом:</label><br>
+            <select name="album_id">
+                <option value="random">Случайные треки</option>
+                {% for album in albums %}
+                    <option value="{{ album.id }}">{{ album.title }}</option>
+                {% endfor %}
+            </select><br><br>
+            
+            <label>Режим:</label><br>
+            <select name="mode">
+                <option value="guess_track">Угадай трек</option>
+                <option value="missing_word">Пропущенное слово</option>
+            </select><br><br>
+
+            <label>Соперник:</label><br>
+            
+            <!-- КАСТОМНЫЙ БЛОК -->
+            <div class="custom-dropdown">
+                <div class="dropdown-selected" onclick="toggleDropdown()">
+                    <span class="selected-content" id="selectedText">Только я</span>
+                    
+                    <!-- ВСТАВЛЕНА SVG-СТРЕЛКА ВМЕСТО ТЕКСТОВОГО СИМВОЛА -->
+                    <svg class="dropdown-arrow-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                        <path d="M 5,5 C 20,30 45,60 50,95 C 55,60 80,30 95,5 C 75,20 60,35 50,45 C 40,35 25,20 5,5 Z"/>
+                    </svg>
+                    
+                </div>
+                <div class="dropdown-options" id="dropdownOptions">
+                    <div class="dropdown-item" onclick="selectOption('off', 'Только я', '')">
+                        <span class="stars"></span>
+                        <span class="text">Только я</span>
+                    </div>
+                    <div class="dropdown-item" onclick="selectOption('easy', 'Бот: легкая сложность', '⛥')">
+                        <span class="stars">⛥</span>
+                        <span class="text">Бот: легкая сложность</span>
+                    </div>
+                    <div class="dropdown-item" onclick="selectOption('normal', 'Бот: средняя сложность', '⛥⛥')">
+                        <span class="stars">⛥⛥</span>
+                        <span class="text">Бот: средняя сложность</span>
+                    </div>
+                    <div class="dropdown-item" onclick="selectOption('hard', 'Бот: сложная сложность', '⛥⛥⛥')">
+                        <span class="stars">⛥⛥⛥</span>
+                        <span class="text">Бот: сложная сложность</span>
+                    </div>
+                </div>
+                <!-- Скрытый инпут для Flask -->
+                <input type="hidden" name="difficulty" id="difficultyInput" value="off">
+            </div>
+            
+            <br><br>
+            <button type="submit">Поехали!</button>
+        </form>
+    </div>
+
+    <!-- СКРИПТ ДЛЯ РАБОТЫ КАСТОМНОГО СПИСКА -->
+    <script>
+        function toggleDropdown() {
+            document.getElementById('dropdownOptions').classList.toggle('show');
+        }
+
+        function selectOption(value, text, stars) {
+            let displayString = stars ? stars + ' ' + text : text;
+            document.getElementById('selectedText').innerHTML = displayString;
+            document.getElementById('difficultyInput').value = value;
+            document.getElementById('dropdownOptions').classList.remove('show');
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.custom-dropdown')) {
+                document.getElementById('dropdownOptions').classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>

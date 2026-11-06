@@ -1,13 +1,94 @@
-<h3>Вопрос {{ q_number }} из {{ total }}</h3>
-<p style="white-space: pre-wrap; font-style: italic;">{{ question.text }}</p>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Игра</title>
+    <style>
+        /* 1. ПОДКЛЮЧАЕМ ВАШ ШРИФТ */
+        @font-face {
+            font-family: 'CyrillicGoth'; /* Даем шрифту имя */
+            src: url("{{ url_for('static', filename='fonts/deutsch-gothic.woff2') }}") format('woff2');
+        }
 
-<form method="POST">
-    {% for option in question.options %}
-        <label style="display: block; margin-bottom: 5px;">
-            <input type="radio" name="answer" value="{{ option }}" required>
-            {{ option }}
-        </label>
-    {% endfor %}
-    <br>
-    <button type="submit">Ответить</button>
-</form>
+        body { 
+            /* 2. ПРИМЕНЯЕМ ШРИФТ КО ВСЕЙ СТРАНИЦЕ */
+            font-family: 'CyrillicGoth', sans-serif; 
+            margin: 20px; 
+            background-color: #f4f4f9; 
+            font-size: 18px; /* Размер шрифта можно подрегулировать под ваш шрифт */
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 50px auto; 
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center; 
+        }
+
+        .question-block {
+            display: inline-block; 
+            text-align: left;      
+            max-width: 100%;       
+        }
+
+        .question-text {
+            margin-bottom: 25px;
+            white-space: pre-wrap; 
+            line-height: 1.5;
+        }
+
+        .options label {
+            display: block; 
+            margin-bottom: 12px;
+            cursor: pointer;
+
+            text-transform: lowercase; 
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+            /* Применяем шрифт и к кнопке, чтобы он не сбрасывался на стандартный */
+            font-family: 'CyrillicGoth', sans-serif; 
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>Вопрос {{ q_number }} из {{ total }}</h3>
+
+        <form method="POST">
+            <!-- Этот блок будет по центру, а текст внутри ровно слева -->
+            <div class="question-block">
+                <p class="question-text">{{ question.text }}</p>
+
+                <div class="options">
+                    {% for option in question.options %}
+                        <label>
+                            <input type="radio" name="answer" value="{{ option }}" required>
+                            {{ option }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <br>
+            <!-- Кнопка осталась по центру -->
+            <button type="submit">Ответить</button>
+        </form>
+    </div>
+</body>
+</html>
