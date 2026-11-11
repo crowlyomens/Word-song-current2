@@ -4,28 +4,79 @@
     <meta charset="UTF-8">
     <title>Игра</title>
     <style>
-        /* 1. ПОДКЛЮЧАЕМ ВАШ ШРИФТ */
+        /* --- ШРИФТ ДЛЯ ЗАГЛАВНЫХ БУКВ --- */
         @font-face {
-            font-family: 'CyrillicGoth'; /* Даем шрифту имя */
+            font-family: 'MixedGothic';
+            src: url("{{ url_for('static', filename='fonts/deutsch-gothic.woff2') }}") format('woff2');
+            unicode-range: U+0041-005A, U+0400-042F, U+0030-0039, U+0020-002F, U+003A-0040;
+        }
+
+        /* --- ШРИФТ ДЛЯ СТРОЧНЫХ БУКВ --- */
+        @font-face {
+            font-family: 'MixedGothic';
+            src: url("{{ url_for('static', filename='fonts/bonapart-modern.woff2') }}") format('woff2');
+            unicode-range: U+0061-007A, U+0430-045F, U+0451;
+        }
+
+        /* --- НОВЫЙ ШРИФТ: ТОЛЬКО ГОТИЧЕСКИЙ (БЕЗ СМЕШИВАНИЯ) --- */
+        @font-face {
+            font-family: 'GothicOnly';
             src: url("{{ url_for('static', filename='fonts/deutsch-gothic.woff2') }}") format('woff2');
         }
 
         body { 
-            /* 2. ПРИМЕНЯЕМ ШРИФТ КО ВСЕЙ СТРАНИЦЕ */
-            font-family: 'CyrillicGoth', sans-serif; 
-            margin: 20px; 
-            background-color: #f4f4f9; 
-            font-size: 18px; /* Размер шрифта можно подрегулировать под ваш шрифт */
+            font-family: 'MixedGothic', sans-serif; 
+            margin: 0; 
+            padding: 20px;
+            box-sizing: border-box; 
+            
+            min-height: 100vh;
+            display: grid;
+            place-items: center; 
+            
+            background-color: #000000; 
+            color: #ffffff; 
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale; 
+            text-rendering: optimizeLegibility; 
+            letter-spacing: 0.5px; 
+            font-size: 18px; 
+
+            {% if question.background %}
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)),
+                url("{{ url_for('static', filename='backgrounds/' + question.background) }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            {% endif %}
         }
         
         .container {
+            width: 100%;
             max-width: 600px;
-            margin: 50px auto; 
-            background: white;
+            margin: 0; 
+            
+            background: rgba(92, 0, 0, 0.85); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px); 
+            
+            border: 1px solid rgba(189, 0, 0, 0.8); 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(139, 0, 0, 0.6); 
+            
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
             text-align: center; 
+        }
+
+        h3 {
+            font-family: 'GothicOnly', sans-serif;
+            text-shadow: 1px 1px 3px #000000, 0 0 8px #000000, -1px -1px 2px rgba(0,0,0,0.8);
+        }
+
+        .question-text, .options label {
+            text-shadow: 1px 1px 3px #000000, 0 0 8px #000000, -1px -1px 2px rgba(0,0,0,0.8);
         }
 
         .question-block {
@@ -38,31 +89,120 @@
             margin-bottom: 25px;
             white-space: pre-wrap; 
             line-height: 1.5;
+            font-size: 20px; 
+        }
+
+        .blank-line {
+            display: inline-block;
+            width: 80px; 
+            border-bottom: 2px solid #ffffff; 
+            margin: 0 5px; 
+            vertical-align: baseline; 
         }
 
         .options label {
-            display: block; 
+            display: flex; 
+            align-items: flex-start; 
             margin-bottom: 12px;
             cursor: pointer;
-
             text-transform: lowercase; 
+            font-size: 19px;
+            line-height: 1.5; 
+            position: relative; 
+        }
+
+        .options input[type="radio"] {
+            appearance: none; 
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 1px solid #bd0000; 
+            background-color: #5c0000; 
+            border-radius: 50%; 
+            cursor: pointer;
+            flex-shrink: 0; 
+            margin: 6px 10px 0 0; 
+            position: relative;
+            transition: 0.3s;
+            outline: none;
+        }
+
+        .options input[type="radio"]:hover {
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+
+        .options input[type="radio"]:checked {
+            background-color: #b30000; 
+            box-shadow: 0 0 12px rgba(255, 0, 0, 0.8); 
+        }
+
+        .gothic-tooltip {
+            display: none; 
+            position: absolute;
+            bottom: 100%; 
+            left: 9px; 
+            transform: translateX(-50%); 
+            margin-bottom: 8px; 
+            
+            background-color: #b30000; 
+            color: white;
+            border: 1px solid #bd0000; 
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 0 4px 10px rgba(0,0,0,0.5); 
+            
+            text-shadow: 1px 1px 3px #000000, 0 0 8px #000000, -1px -1px 2px rgba(0,0,0,0.8); 
+            
+            padding: 8px 15px;
+            border-radius: 5px;
+            
+            font-family: 'GothicOnly', sans-serif; 
+            
+            font-size: 16px;
+            white-space: nowrap;
+            z-index: 100;
+            text-transform: lowercase;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .gothic-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%; 
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #b30000 transparent transparent transparent; 
+        }
+
+        .gothic-tooltip.show {
+            display: flex;
         }
 
         button {
-            background-color: #007bff;
+            background-color: #5c0000; 
             color: white;
-            border: none;
+            border: 1px solid #bd0000; 
+            transition: 0.3s;
+            
+            text-shadow: 1px 1px 3px #000000, 0 0 8px #000000, -1px -1px 2px rgba(0,0,0,0.8);
+            
             padding: 10px 25px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 20px;
             margin-top: 20px;
-            /* Применяем шрифт и к кнопке, чтобы он не сбрасывался на стандартный */
-            font-family: 'CyrillicGoth', sans-serif; 
+            
+            font-family: 'GothicOnly', sans-serif; 
+            
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
         button:hover {
-            background-color: #0056b3;
+            background-color: #b30000; 
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 0 4px 10px rgba(0,0,0,0.5); 
+            text-shadow: 1px 1px 3px #000000, 0 0 8px #000000, -1px -1px 2px rgba(0,0,0,0.8); 
         }
     </style>
 </head>
@@ -70,25 +210,53 @@
     <div class="container">
         <h3>Вопрос {{ q_number }} из {{ total }}</h3>
 
-        <form method="POST">
-            <!-- Этот блок будет по центру, а текст внутри ровно слева -->
+        <form method="POST" novalidate onsubmit="return validateForm()">
             <div class="question-block">
-                <p class="question-text">{{ question.text }}</p>
+                <p class="question-text">{{ question.text | replace("______", "<span class='blank-line'></span>") | safe }}</p>
 
                 <div class="options">
                     {% for option in question.options %}
                         <label>
-                            <input type="radio" name="answer" value="{{ option }}" required>
-                            {{ option }}
+                            <input type="radio" name="answer" value="{{ option }}">
+                            
+                            <!-- ОБРЕЗАЕМ ТЕКСТ В СКОБКАХ -->
+                            {{ option.split('[')[0].split('(')[0] | trim }}
+                            
+                            {% if loop.first %}
+                                <div id="radio-tooltip" class="gothic-tooltip">
+                                    выберите один из вариантов !
+                                </div>
+                            {% endif %}
                         </label>
                     {% endfor %}
                 </div>
             </div>
             
             <br>
-            <!-- Кнопка осталась по центру -->
             <button type="submit">Ответить</button>
         </form>
     </div>
+
+    <script>
+        function validateForm() {
+            const selected = document.querySelector('input[name="answer"]:checked');
+            const tooltip = document.getElementById('radio-tooltip');
+
+            if (!selected) {
+                if (tooltip) tooltip.classList.add('show'); 
+                return false; 
+            }
+
+            if (tooltip) tooltip.classList.remove('show');
+            return true;
+        }
+
+        document.querySelectorAll('input[name="answer"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                const tooltip = document.getElementById('radio-tooltip');
+                if (tooltip) tooltip.classList.remove('show');
+            });
+        });
+    </script>
 </body>
 </html>

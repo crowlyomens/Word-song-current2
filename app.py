@@ -1,5 +1,6 @@
 import random
 import re
+import os 
 from flask import Flask, render_template, request, session, redirect, url_for
 from init_db import create_app
 from models import db, Album, Track, Verse
@@ -17,7 +18,7 @@ BOT_DIFFICULTY = {
     'hard': 0.85     # Сложный (почти всегда прав)
 }
 # Специальное значение: игра без бота
-BOT_OFF = 'off'
+BOT_OFF = 'off' 
 
 
 def hide_word(text, word):
@@ -72,11 +73,36 @@ def generate_questions(album_id, mode):
     all_track_titles = [t.title for t in Track.query.all()]
     all_words = list(set([v.missing_word for v in Verse.query.all() if v.missing_word]))
 
-    for verse in selected_verses:
+    # --- НОВАЯ ЛОГИКА ВЫБОРА ФОНОВ ---
+    # Указываем путь к папке с картинками
+    bg_folder = os.path.join(app.static_folder, 'backgrounds')
+    available_bgs = []
+    
+    # Если папка существует, собираем все картинки (jpg, png, jpeg, webp)
+    if os.path.exists(bg_folder):
+        available_bgs = [
+            f for f in os.listdir(bg_folder) 
+            if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))
+        ]
+
+    # Выбираем уникальные фоны (без повторов)
+    if len(available_bgs) >= sample_size:
+        # Если картинок больше или столько же, сколько вопросов — берем уникальные
+        selected_bgs = random.sample(available_bgs, sample_size)
+    else:
+        # Если картинок меньше, чем вопросов (например, 3 картинки на 10 вопросов)
+        # Берем все картинки, а остальным вопросам ставим None (без фона), чтобы избежать повторов
+        selected_bgs = random.sample(available_bgs, len(available_bgs))
+        selected_bgs.extend([None] * (sample_size - len(available_bgs)))
+    # ----------------------------------
+
+    for index, verse in enumerate(selected_verses):
+        # Берем фон для текущего вопроса по его порядковому номеру
+        selected_bg = selected_bgs[index]
+
         if mode == 'guess_track':
             correct = clean_display_title(verse.track.title) if verse.track else "Без альбома"
             options = [correct]
-            # Чистим и остальные варианты, чтобы они выглядели одинаково
             other_tracks = [
                 clean_display_title(t) for t in all_track_titles
                 if clean_display_title(t) != correct
@@ -86,12 +112,22 @@ def generate_questions(album_id, mode):
             else:
                 options.extend(["Неизвестный трек"] * (4 - len(options)))
             random.shuffle(options)
-            questions.append({'verse_id': verse.id, 'text': verse.text, 'options': options, 'correct': correct, 'mode': 'guess_track'})
+            
+            questions.append({
+                'verse_id': verse.id, 'text': verse.text, 'options': options, 
+                'correct': correct, 'mode': 'guess_track', 
+                'background': selected_bg # <-- Передаем уникальный фон
+            })
             
         elif mode == 'missing_word':
             correct, options = missing_word_options(verse, all_words)
             hidden_text = hide_word(verse.text, correct)
-            questions.append({'verse_id': verse.id, 'text': hidden_text, 'options': options, 'correct': correct, 'mode': 'missing_word'})
+            
+            questions.append({
+                'verse_id': verse.id, 'text': hidden_text, 'options': options, 
+                'correct': correct, 'mode': 'missing_word',
+                'background': selected_bg # <-- Передаем уникальный фон
+            })
             
     return questions
 

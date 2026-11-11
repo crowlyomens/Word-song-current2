@@ -4,106 +4,219 @@
     <meta charset="UTF-8">
     <title>Результат</title>
     <style>
-        /* Подключаем ваш готический шрифт */
+        /* --- ШРИФТ ДЛЯ ЗАГЛАВНЫХ БУКВ --- */
         @font-face {
-            font-family: 'CyrillicGoth';
+            font-family: 'MixedGothic';
+            src: url("{{ url_for('static', filename='fonts/deutsch-gothic.woff2') }}") format('woff2');
+            unicode-range: U+0041-005A, U+0400-042F, U+0030-0039, U+0020-002F, U+003A-0040;
+        }
+
+        /* --- ШРИФТ ДЛЯ СТРОЧНЫХ БУКВ --- */
+        @font-face {
+            font-family: 'MixedGothic';
+            src: url("{{ url_for('static', filename='fonts/bonapart-modern.woff2') }}") format('woff2');
+            unicode-range: U+0061-007A, U+0430-045F, U+0451;
+        }
+
+        /* --- НОВЫЙ ШРИФТ: ТОЛЬКО ГОТИЧЕСКИЙ (БЕЗ СМЕШИВАНИЯ) --- */
+        @font-face {
+            font-family: 'GothicOnly';
             src: url("{{ url_for('static', filename='fonts/deutsch-gothic.woff2') }}") format('woff2');
         }
 
         body { 
-            font-family: 'CyrillicGoth', sans-serif; /* Применили шрифт ко всей странице */
-            margin: 20px; 
-            background-color: #f4f4f9; 
+            font-family: 'MixedGothic', sans-serif; 
+            margin: 0; 
+            padding: 20px;
+            box-sizing: border-box;
+            
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            
+            background-color: #000000; 
+            color: #ffffff; 
+            font-size: 16px; 
+            -webkit-font-smoothing: antialiased; 
         }
         
         .container { 
-            max-width: 800px; 
-            margin: auto; 
-            background: white; 
+            width: 100%;
+            max-width: 1100px; 
+            margin: 0;
+            
+            background: #5c0000; 
+            border: 1px solid #bd0000; 
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.6); 
             padding: 20px; 
             border-radius: 8px; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
-            text-align: center; /* Центрируем заголовок */
+            text-align: center; 
+        }
+
+        /* ТЕНЬ ВЫРОВНЕНА ДЛЯ ВСЕХ ЗАГОЛОВКОВ И БЛОКОВ */
+        h1, h2, h3, .score-board div, .history-item div {
+            text-shadow: 1px 1px 3px #000000, 0 0 8px #000000, -1px -1px 2px rgba(0,0,0,0.8);
+        }
+
+        /* ПРИМЕНЯЕМ ЧИСТЫЙ ГОТИЧЕСКИЙ ШРИФТ К ЗАГОЛОВКАМ */
+        h1 { font-size: 24px; margin-bottom: 20px; font-family: 'GothicOnly', sans-serif; }
+        h2 { font-size: 20px; margin-bottom: 20px; font-family: 'GothicOnly', sans-serif; }
+        h3 { font-size: 18px; margin-top: 20px; margin-bottom: 15px; font-family: 'GothicOnly', sans-serif; }
+        
+        .score { 
+            font-size: 20px; 
+            font-weight: bold; 
+            color: #ffffff; 
+            margin-bottom: 20px; 
         }
         
-        .score { font-size: 24px; font-weight: bold; color: #333; margin-bottom: 20px; }
-        
+        .history-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+            text-align: left; 
+            align-items: start; 
+        }
+
+        @media (max-width: 850px) {
+            .history-grid { grid-template-columns: 1fr; }
+        }
+
         .history-item { 
-            margin-bottom: 15px; 
+            margin-bottom: 0; 
             padding: 10px; 
             border-radius: 5px; 
-            text-align: left; /* Разбор ответов прижат к левому краю */
+            height: 100%; 
+            box-sizing: border-box;
+            background-color: rgba(0, 0, 0, 0.4); 
         }
         
-        .correct { background-color: #d4edda; border-left: 5px solid #28a745; }
-        .incorrect { background-color: #f8d7da; border-left: 5px solid #dc3545; }
+        .correct { border-left: 5px solid #ffffff; }
+        .incorrect { border-left: 5px solid #bd0000; }
         
         .question-text { 
-            /* font-style: italic; <-- Убрали курсив для единого стиля */
             white-space: pre-wrap; 
             margin-bottom: 5px; 
+            line-height: 1.4; 
+            font-size: 16px;
+            color: #ffffff;
+        }
+
+        /* --- СТИЛЬ ДЛЯ СПЛОШНОЙ ЛИНИИ --- */
+        .blank-line {
+            display: inline-block;
+            width: 60px; 
+            border-bottom: 2px solid #ffffff; 
+            margin: 0 5px; 
+            vertical-align: baseline; 
         }
         
-        .user-answer { font-weight: bold; }
-        
-        /* ДОБАВЛЕНО: делаем ответы строчными буквами */
-        .correct-answer { 
-            font-weight: bold; 
-            color: #155724; 
+        /* --- ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ОТВЕТОВ (В ОДНУ СТРОКУ) --- */
+        .answer-line {
+            font-size: 16px; 
+            line-height: 1.4;
+            display: flex; 
+            align-items: baseline; 
+            gap: 6px; 
+            margin-top: 8px;
+            font-weight: bold;
             text-transform: lowercase; 
         }
+
+        .gothic-text {
+            font-family: 'GothicOnly', sans-serif;
+            font-size: 12.7px; 
+            line-height: 1.4; 
+        }
+
+        .color-correct { color: #ffffff; }
+        .color-wrong { color: #bd0000; }
+        .color-bot { color: rgba(255, 255, 255, 0.7); }
+
+        /* --- СТИЛИ ДЛЯ ВСЕХ ИКОНОК --- */
+        .icon {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor; 
+            stroke-width: 3;      
+            stroke-linecap: round; 
+            stroke-linejoin: round;
+            fill: none;
+            flex-shrink: 0;       
+            align-self: center; 
+        }
+
+        /* КЛАСС ДЛЯ ТЕКСТОВЫХ ГАЛОЧКИ И КРЕСТИКА */
+        .icon-char {
+            font-size: 18px;
+            font-weight: bold;
+            flex-shrink: 0;
+            align-self: center;
+            line-height: 1;
+        }
+
+        .score-board { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: #000000; 
+            border: 1px solid #bd0000;
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
         
-        .wrong-answer { 
+        /* ДОБАВЛЕН ГОТИЧЕСКИЙ ШРИФТ */
+        .player-score { font-size: 18px; font-weight: bold; color: #ffffff; font-family: 'GothicOnly', sans-serif; }
+        /* ДОБАВЛЕН ГОТИЧЕСКИЙ ШРИФТ */
+        .bot-score { font-size: 18px; font-weight: bold; color: #bd0000; font-family: 'GothicOnly', sans-serif; }
+        
+        .winner-text { 
+            text-align: center; 
+            font-size: 26px; 
             font-weight: bold; 
-            color: #721c24; 
-            text-transform: lowercase; 
+            color: #ffffff; 
+            margin-bottom: 20px; 
+            text-shadow: 1px 1px 3px #000000, 0 0 8px #000000, -1px -1px 2px rgba(0,0,0,0.8);
         }
         
         .btn { 
             display: inline-block; 
             padding: 10px 20px; 
-            background: #007bff; 
+            background: #5c0000; 
             color: white; 
             text-decoration: none; 
             border-radius: 5px; 
             margin-top: 20px; 
-            font-family: 'CyrillicGoth', sans-serif; /* Шрифт для кнопки */
+            font-family: 'GothicOnly', sans-serif; 
+            font-size: 18px;
+            border: 1px solid #bd0000;
+            transition: 0.3s;
+            text-shadow: 1px 1px 3px #000000, 0 0 8px #000000, -1px -1px 2px rgba(0,0,0,0.8);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        
-        .score-board { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: #e9ecef; 
-            padding: 15px; 
-            border-radius: 8px; 
-            margin-bottom: 20px; 
-        }
-        
-        .player-score { font-size: 20px; font-weight: bold; }
-        .bot-score { font-size: 20px; font-weight: bold; color: #6c757d; }
-        .winner-text { text-align: center; font-size: 22px; font-weight: bold; color: #007bff; margin-bottom: 20px; }
-        
-        /* ДОБАВЛЕНО: делаем ответы бота строчными буквами */
-        .bot-answer { 
-            color: #6c757d; 
-            font-size: 0.9em; 
-            margin-top: 5px; 
-            text-transform: lowercase; 
+
+        .btn:hover {
+            background-color: #b30000; 
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 0 4px 10px rgba(0,0,0,0.5); 
+            text-shadow: 1px 1px 3px #000000, 0 0 8px #000000, -1px -1px 2px rgba(0,0,0,0.8);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Игра окончена!</h1>
         
+        <h1>Игра пройдена!</h1>
         {% if with_bot %}
-            <div class="winner-text">
-                {% if winner == 'user' %}🎉 Вы победили!
-                {% elif winner == 'bot' %}🤖 Бот победил!
-                {% else %}🤝 Ничья!{% endif %}
-            </div>
+            <h2>
+                {% if winner == 'user' %}Вы победили!
+                {% elif winner == 'bot' %}Победа бота!
+                {% else %}Ничья!{% endif %}
+            </h2>
+        {% endif %}
 
+        {% if with_bot %}
             <div class="score-board">
                 <div class="player-score">Ваш счет: {{ score }} из {{ total }}</div>
                 <div class="bot-score">Счет бота: {{ bot_score }}</div>
@@ -115,30 +228,50 @@
         {% endif %}
 
         <h3>Разбор ответов:</h3>
+
         {% if history %}
-            {% for item in history %}
-                <div class="history-item {% if item.is_correct %}correct{% else %}incorrect{% endif %}">
-                    <div class="question-text">{{ item.question }}</div>
-                    
-                    {% if item.is_correct %}
-                        <div class="correct-answer">✅ Ваш ответ: {{ item.user_answer }} (Верно)</div>
-                    {% else %}
-                        <div class="wrong-answer">❌ Ваш ответ: {{ item.user_answer }}</div>
-                        <div class="correct-answer">✅ Правильный ответ: {{ item.correct_answer }}</div>
-                    {% endif %}
-                    
-                    {% if with_bot and item.bot_answer %}
-                        <div class="bot-answer">
-                            🤖 Бот ответил: {{ item.bot_answer }} {% if item.bot_is_correct %}(Верно){% else %}(Ошибся){% endif %}
-                        </div>
-                    {% endif %}
-                </div>
-            {% endfor %}
+            <div class="history-grid">
+                {% for item in history %}
+                    <div class="history-item {% if item.is_correct %}correct{% else %}incorrect{% endif %}">
+                        
+                        <div class="question-text">{{ item.question | replace("______", "<span class='blank-line'></span>") | safe }}</div>
+                        
+                        {% if item.is_correct %}
+                            <div class="answer-line color-correct">
+                                <span class="icon-char">✓</span>
+                                <span class="gothic-text">ваш ответ:</span> {{ item.user_answer.split('[')[0].split('(')[0] | trim }}
+                            </div>
+                        {% else %}
+                            <div class="answer-line color-wrong">
+                                <span class="icon-char">✗</span>
+                                <span class="gothic-text">ваш ответ:</span> {{ item.user_answer.split('[')[0].split('(')[0] | trim }}
+                            </div>
+                            
+                            <div class="answer-line color-correct" style="margin-top: 4px;">
+                                <span class="icon-char">✓</span>
+                                <span class="gothic-text">правильный ответ:</span> {{ item.correct_answer.split('[')[0].split('(')[0] | trim }}
+                            </div>
+                        {% endif %}
+
+                        {% if with_bot and item.bot_answer %}
+                            <div class="answer-line color-bot" style="margin-top: 4px;">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 1.66 1.34 3 3 3h2c1.66 0 3-1.34 3-3v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7z"></path>
+                                    <circle cx="9" cy="10" r="1.5"></circle>
+                                    <circle cx="15" cy="10" r="1.5"></circle>
+                                    <path d="M9 15h6"></path>
+                                </svg>
+                                <span class="gothic-text">бот ответил:</span> {{ item.bot_answer.split('[')[0].split('(')[0] | trim }} {% if item.bot_is_correct %}<span class="gothic-text">(Верно)</span>{% else %}<span class="gothic-text">(Ошибся)</span>{% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
         {% else %}
             <p>Нет данных об ответах.</p>
         {% endif %}
         
-        <a href="/" class="btn">Играть снова</a>
+        <a href="/" class="btn">В главное меню</a>
     </div>
 </body>
 </html>

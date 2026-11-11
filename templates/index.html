@@ -12,56 +12,98 @@
 
         /* 2. Общие стили для всей страницы */
         body {
-            font-family: 'CyrillicGoth', sans-serif; /* Все элементы используют этот шрифт */
-            margin: 20px;
-            background-color: #f4f4f9;
+            font-family: 'CyrillicGoth', sans-serif; 
+            margin: 0; 
+            padding: 20px;
+            box-sizing: border-box; /* Чтобы padding не ломал экран */
+            
+            /* --- ДОБАВЛЕНО ДЛЯ ЦЕНТРИРОВАНИЯ --- */
+            min-height: 100vh;
+            display: grid;
+            place-items: center; /* Ставит контейнер ровно по центру (X и Y) */
+            
+            /* --- ФОН С КАРТИНКОЙ --- */
+            background-color: #000000; 
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)),
+                url("{{ url_for('static', filename='background/s1260x500 (1).jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+
+            color: #ffffff;
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale; 
+            text-rendering: optimizeLegibility; 
+            letter-spacing: 0.5px; 
             font-size: 18px;
         }
 
-        /* 3. Стили для белой карточки по центру */
+        /* 3. Стили для карточки по центру (эффект матового стекла) */
         .container {
-            max-width: 600px;
-            margin: 50px auto; 
-            background: white;
-            padding: 30px;
+            width: 100%; /* ДОБАВЛЕНО: Обязательно, чтобы окно не сжималось */
+            max-width: 600px; /* Ваш исходный размер */
+            
+            /* Убрали margin: 80px auto, так как сетка (grid) уже центрирует */
+            margin: 0; 
+            
+            background: rgba(92, 0, 0, 0.85); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px); 
+            
+            border: 1px solid #bd0000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(139, 0, 0, 0.6);
+            
+            padding: 40px 30px; /* Ваш исходный отступ */
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            text-align: center; /* Центрируем текст внутри */
+            text-align: center;
+        }
+
+        /* Тени для текста, чтобы он был четким на фоне */
+        h1, p, .pyrokinesis-text {
+            text-shadow: 1px 1px 3px #000000, 0 0 8px #000000, -1px -1px 2px rgba(0,0,0,0.8);
         }
 
         /* 4. Word-Song и Pyrokinesis */
         h1, .pyrokinesis-text {
-            font-family: 'CyrillicGoth', sans-serif; /* Изменено на основной шрифт */
+            font-family: 'CyrillicGoth', sans-serif; 
             font-weight: bold;
-            font-size: 45px; /* Размер оставлен без изменений */
+            font-size: 45px; 
             line-height: 1.2;
         }
 
         h1 {
+            margin-top: 0;
             margin-bottom: 5px; 
         }
 
         /* Стили для слова Pyrokinesis */
         .pyrokinesis-text {
-            display: block; /* Оставляет на новой строке */
-            margin-bottom: 20px; 
+            display: block; 
+            margin-bottom: 30px; 
         }
 
         /* 5. Стили для кнопки */
         button {
             font-family: 'CyrillicGoth', sans-serif; 
-            background-color: #007bff;
+            background-color: #5c0000; 
             color: white;
-            border: none;
-            padding: 10px 25px;
+            border: 1px solid #bd0000; 
+            padding: 12px 30px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 20px;
             margin-top: 20px;
+            transition: 0.3s;
+            text-shadow: 0 0 4px #000000, 0 0 8px #000000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
         button:hover {
-            background-color: #0056b3;
+            background-color: #b30000; 
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 0 4px 10px rgba(0,0,0,0.5); 
+            text-shadow: 0 0 6px #000000, 0 0 12px #000000; 
         }
     </style>
 </head>
@@ -69,7 +111,7 @@
     <div class="container">
         <h1>Word-Song</h1>
         
-        <p style="margin-bottom: 10px;">Проверь знание песен</p>
+        <p style="margin-bottom: 15px;">Проверь знание песен</p>
         
         <div class="pyrokinesis-text">Pyrokinesis'a</div>
         
